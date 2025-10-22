@@ -1,0 +1,74 @@
+# 多数据源配置文件
+# 支持配置多个数据库连接，每个数据源会生成对应的知识库
+
+datasources:
+  # 示例：公司主数据库
+  - name: "company_main_db"
+    display_name: "公司主数据库"
+    description: "公司核心业务数据库，包含用户、订单等信息"
+    type: "mysql"
+    enabled: true
+    connection:
+      host: "${MYSQL_HOST}"
+      port: 3306
+      user: "${MYSQL_USER}"
+      password: "${MYSQL_PASSWORD}"
+      database: "${MYSQL_DATABASE}"
+    # 知识库配置
+    knowledge_base:
+      collection_name: "kb_company_main"
+      include_sample_data: true
+      sample_data_limit: 5
+      # 可选：指定要包含的表（不指定则包含所有表）
+      # include_tables: ["users", "orders", "products"]
+      # 可选：排除某些表
+      # exclude_tables: ["logs", "temp_data"]
+
+  # 示例：分析数据库
+  - name: "analytics_db"
+    display_name: "数据分析库"
+    description: "用于数据分析和报表的数据仓库"
+    type: "postgres"
+    enabled: true
+    connection:
+      host: "${POSTGRES_HOST}"
+      port: 5432
+      user: "${POSTGRES_USER}"
+      password: "${POSTGRES_PASSWORD}"
+      database: "${POSTGRES_DATABASE}"
+    knowledge_base:
+      collection_name: "kb_analytics"
+      include_sample_data: true
+      sample_data_limit: 3
+
+  # 示例：MongoDB 文档数据库
+  - name: "product_catalog"
+    display_name: "商品目录库"
+    description: "商品信息和目录数据"
+    type: "mongodb"
+    enabled: false  # 暂时禁用
+    connection:
+      uri: "${MONGODB_URI}"
+      database: "${MONGODB_DATABASE}"
+    knowledge_base:
+      collection_name: "kb_product_catalog"
+      include_sample_data: true
+      sample_data_limit: 5
+
+# 向量数据库配置
+vector_store:
+  type: "chroma"  # 支持: chroma, faiss
+  persist_directory: "./data/chroma"
+
+# 嵌入模型配置
+embedding:
+  provider: "openai"  # 支持: openai, huggingface
+  model: "text-embedding-ada-002"
+
+# RAG 配置
+rag:
+  chunk_size: 1000
+  chunk_overlap: 200
+  top_k_results: 5
+  similarity_threshold: 0.7
+

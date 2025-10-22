@@ -1,7 +1,9 @@
 """PostgreSQL 数据库连接"""
 from typing import Any, List, Dict, Optional
+
 import psycopg2
 from psycopg2.extras import RealDictCursor
+
 from .base import BaseDatabase
 
 
@@ -82,6 +84,20 @@ class PostgreSQLDatabase(BaseDatabase):
         
         return columns
 
+    def get_sample_data(self, table_name: str, limit: int = 5) -> List[Dict[str, Any]]:
+        """
+        获取表的示例数据
+
+        Args:
+            table_name: 表名
+            limit: 返回记录数
+
+        Returns:
+            示例数据
+        """
+        query = f"SELECT * FROM {table_name} LIMIT {limit}"
+        return self.execute_query(query)
+
 
 class MongoDBDatabase(BaseDatabase):
     """MongoDB 数据库连接类"""
@@ -134,3 +150,29 @@ class MongoDBDatabase(BaseDatabase):
             return {'fields': fields, 'sample_count': collection.count_documents({})}
         
         return {'fields': {}, 'sample_count': 0}
+
+    def get_sample_data(self, collection_name: str, limit: int = 5) -> List[Dict[str, Any]]:
+        """
+        获取集合的示例数据
+
+        Args:
+            collection_name: 集合名
+            limit: 返回记录数
+
+        Returns:
+            示例数据
+        """
+        if not self.connection:
+            self.connect()
+
+        collection = self.connection[collection_name]
+        cursor = collection.find().limit(limit)
+
+        results = []
+        for doc in cursor:
+            # 转换 ObjectId 为字符串
+            if '_id' in doc:
+                doc['_id'] = str(doc['_id'])
+            results.append(doc)
+
+        return results

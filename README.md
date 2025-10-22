@@ -7,11 +7,13 @@
 ### 核心功能
 
 - 🤖 **智能对话**: 通过自然语言与数据库交互
-- 📊 **数据查询**: 支持多种数据库（MySQL、PostgreSQL、MongoDB 等）
+- 📊 **多数据源支持**: 支持配置多个数据库（MySQL、PostgreSQL、MongoDB 等）
+- 📚 **多知识库管理**: 为每个数据源自动生成独立的知识库
 - 🔍 **RAG 检索**: 基于向量相似度的智能检索
-- 💾 **向量存储**: 支持 Chroma、FAISS、Qdrant 等向量数据库
+- 💾 **向量存储**: 支持 Chroma、FAISS 等向量数据库
 - 🧠 **多模型支持**: 集成 OpenAI、通义千问、智谱 AI 等多种大模型
 - 📡 **API 服务**: 提供 RESTful API 接口
+- 🔧 **灵活配置**: 通过 YAML 配置文件管理数据源
 
 ## 🏗️ 项目架构
 
@@ -61,7 +63,36 @@ cp .env.example .env
 # 编辑 .env 文件，填入你的 API Keys 和数据库配置
 ```
 
-### 3. 运行服务
+### 3. 配置数据源
+
+编辑 `config/datasources.yaml` 文件，配置你的数据库连接：
+
+```yaml
+datasources:
+  - name: "company_main_db"
+    display_name: "公司主数据库"
+    type: "mysql"
+    enabled: true
+    connection:
+      host: "${MYSQL_HOST}"
+      database: "${MYSQL_DATABASE}"
+      # ... 其他配置
+```
+
+### 4. 导入数据源到知识库
+
+```bash
+# 查看所有数据源
+python scripts/import_datasources.py --list
+
+# 导入所有启用的数据源
+python scripts/import_datasources.py --all
+
+# 导入指定数据源
+python scripts/import_datasources.py --datasource company_main_db
+```
+
+### 5. 启动 API 服务
 
 ```bash
 # 启动 API 服务
@@ -71,14 +102,24 @@ python -m src.api.main
 uvicorn src.api.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-### 4. 测试使用
+访问 http://localhost:8000/docs 查看 API 文档
+
+### 6. 测试使用
 
 ```bash
-# 运行示例脚本
+# 运行多数据源示例
+python examples/multi_datasource_example.py
+
+# 或运行基础示例
 python examples/basic_usage.py
 ```
 
 ## 📚 使用文档
+
+### 详细文档
+
+- [多数据源知识库使用指南](docs/MULTI_DATASOURCE_GUIDE.md) - 完整的配置和使用教程
+- [API 文档](http://localhost:8000/docs) - 启动服务后访问
 
 ### 支持的数据库
 
@@ -99,7 +140,44 @@ python examples/basic_usage.py
 
 - ChromaDB (默认)
 - FAISS
-- Qdrant
+
+## 🎯 主要特性
+
+### 1. 多数据源配置
+
+通过 `config/datasources.yaml` 配置多个数据源：
+
+```yaml
+datasources:
+  - name: "company_main_db"
+    display_name: "公司主数据库"
+    type: "mysql"
+    enabled: true
+    knowledge_base:
+      collection_name: "kb_company_main"
+```
+
+### 2. 自动知识库生成
+
+系统会自动：
+- 提取数据库表结构
+- 提取字段信息和注释
+- 可选提取示例数据
+- 生成向量索引
+
+### 3. 智能查询
+
+支持多种查询方式：
+- 搜索所有知识库
+- 搜索指定知识库
+- 基于知识库的智能问答
+
+### 4. RESTful API
+
+提供完整的 API 接口：
+- `GET /knowledge-bases` - 获取知识库列表
+- `POST /search` - 搜索知识库
+- `POST /query-kb` - 智能问答
 
 ## 🛠️ 开发指南
 
